@@ -1,5 +1,4 @@
 .gtasks-card {
-  width: 300px;
   padding: 14px 16px;
   border-radius: 14px;
   background-color: rgba(20, 20, 20, 0.55);
@@ -12,3 +11,5 @@
 .gtasks-overdue { color: #ff8a80; }
 .gtasks-dim { color: #bbbbbb; }
 .gtasks-header { font-weight: bold; color: #9cc3ff; }
+.gtasks-target { padding: 4px 10px; margin-right: 6px; }
+.gtasks-full { width: 300px; }

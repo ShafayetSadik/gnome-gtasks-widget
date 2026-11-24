@@ -77,6 +77,15 @@ export class TasksClient {
     add(listId, title) {
         return this._api('POST', `/lists/${enc(listId)}/tasks`, {title});
     }
+
+    move(listId, taskId, destListId) {
+        return this._api('POST',
+            `/lists/${enc(listId)}/tasks/${enc(taskId)}/move?destinationTasklist=${enc(destListId)}`);
+    }
+
+    addList(title) {
+        return this._api('POST', '/users/@me/lists', {title});
+    }
 }
 
 // Access token from GNOME Online Accounts (first Google account), or null if none.

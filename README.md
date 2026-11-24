@@ -2,7 +2,11 @@
 
 A minimal GNOME Shell extension that shows your Google Tasks:
 
-- **Top bar**: ✓ icon with your open-task count. The menu lists all task lists — click a task to mark it done, type in the box to add a task to your first list.
+- **Top bar**: ✓ icon with your open-task count. The menu lists all your task lists:
+  - click a task → **Mark done** or **Move to** another list
+  - **Add task**: click the list button (e.g. `Daily ▸`) to pick the list, type, press Enter
+  - **New list**: type a name, press Enter
+  - **Minimize desktop card** switch: shrinks the card to a small "Tasks · N" pill (remembered across logins)
 - **Desktop**: a semi-transparent card in the top-right corner, behind your windows.
 
 No Google Cloud project, no background service, no extra packages. It signs in through the Google account you add in **Settings → Online Accounts**, and refreshes every 5 minutes.
@@ -55,7 +59,6 @@ CSS changes apply after `gnome-extensions disable` + `enable`; JS changes need a
 ## Notes
 
 - The desktop card is display-only (Ubuntu's desktop-icons layer sits above it and takes clicks); use the top-bar menu to tick off or add tasks.
-- Clicking a task in the menu marks it done immediately. Undo it in Google Tasks if needed.
 
 ## License
 
