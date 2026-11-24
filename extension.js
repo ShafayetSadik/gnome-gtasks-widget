@@ -6,7 +6,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
-import {TasksClient, dueInfo} from './api.js';
+import {TasksClient, dueInfo, parseDate} from './api.js';
 
 const REFRESH_SECONDS = 300;
 const CARD_MAX_LINES = 22;
@@ -35,7 +35,7 @@ export default class GTasksExtension extends Extension {
         const addItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         this._target = new St.Button({label: '…', style_class: 'button gtasks-target', can_focus: true});
         this._target.connect('clicked', () => this._cycleTarget());
-        this._entry = new St.Entry({hint_text: 'Add task…', x_expand: true, can_focus: true});
+        this._entry = new St.Entry({hint_text: 'Add task…  e.g. Pay bill @fri', x_expand: true, can_focus: true});
         this._entry.clutter_text.connect('activate', () => this._add());
         addItem.add_child(this._target);
         addItem.add_child(this._entry);
@@ -139,12 +139,16 @@ export default class GTasksExtension extends Extension {
     }
 
     _add() {
-        const title = this._entry.text.trim();
+        let title = this._entry.text.trim(), ymd = null;
         const list = this._lists.find(l => l.id === this._targetId);
+        // Optional trailing "@date", e.g. "Pay bill @fri" or "Call bank @dec 5".
+        const at = title.lastIndexOf(' @');
+        if (at > 0 && (ymd = parseDate(title.slice(at + 2))))
+            title = title.slice(0, at).trim();
         if (!title || !list)
             return;
         this._entry.text = '';
-        this._run(() => this._client.add(list.id, title));
+        this._run(() => this._client.add(list.id, title, ymd));
     }
 
     _addList() {
@@ -193,6 +197,25 @@ export default class GTasksExtension extends Extension {
                 if (due?.overdue)
                     item.label.add_style_class_name('gtasks-overdue');
                 item.menu.addAction('✓  Mark done', () => this._run(() => this._client.complete(l.id, t.id)));
+                const setDue = ymd => this._run(() => this._client.setDue(l.id, t.id, ymd));
+                item.menu.addAction('◷  Due today', () => setDue(parseDate('today')));
+                item.menu.addAction('◷  Due tomorrow', () => setDue(parseDate('tomorrow')));
+                const dateItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+                const dateEntry = new St.Entry({hint_text: 'Date: fri, 28, dec 5…', x_expand: true, can_focus: true});
+                dateEntry.clutter_text.connect('activate', () => {
+                    const ymd = parseDate(dateEntry.text);
+                    dateEntry.text = '';
+                    if (!ymd) {
+                        dateEntry.hint_text = 'Not a date — try fri, 28, dec 5';
+                        return;
+                    }
+                    this._button.menu.close();
+                    setDue(ymd);
+                });
+                dateItem.add_child(dateEntry);
+                item.menu.addMenuItem(dateItem);
+                if (t.due)
+                    item.menu.addAction('✕  Remove date', () => setDue(null));
                 for (const d of this._lists) {
                     if (d.id !== l.id)
                         item.menu.addAction(`→  Move to ${d.title.trim()}`,

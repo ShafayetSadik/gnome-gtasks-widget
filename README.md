@@ -3,8 +3,11 @@
 A minimal GNOME Shell extension that shows your Google Tasks:
 
 - **Top bar**: ✓ icon with your open-task count. The menu lists all your task lists:
-  - click a task → **Mark done** or **Move to** another list
-  - **Add task**: click the list button (e.g. `Daily ▸`) to pick the list, type, press Enter
+  - click a task → **Mark done**, set a **due date**, or **Move to** another list
+  - **Add task**: click the list button (e.g. `Daily ▸`) to pick the list, type, press Enter.
+    Add `@date` at the end to set a due date: `Pay bill @fri`, `Call bank @dec 5`
+  - Dates accept: `today`, `tomorrow`, weekday (`fri`), day of month (`28`), `dec 5` / `5 dec`, `2026-12-05`.
+    Google Tasks stores dates only, not times.
   - **New list**: type a name, press Enter
   - **Minimize desktop card** switch: shrinks the card to a small "Tasks · N" pill (remembered across logins)
 - **Desktop**: a semi-transparent card in the top-right corner, behind your windows.

@@ -74,8 +74,9 @@ export class TasksClient {
         return this._api('PATCH', `/lists/${enc(listId)}/tasks/${enc(taskId)}`, {status: 'completed'});
     }
 
-    add(listId, title) {
-        return this._api('POST', `/lists/${enc(listId)}/tasks`, {title});
+    add(listId, title, ymd = null) {
+        return this._api('POST', `/lists/${enc(listId)}/tasks`,
+            ymd ? {title, due: `${ymd}T00:00:00.000Z`} : {title});
     }
 
     move(listId, taskId, destListId) {
@@ -85,6 +86,12 @@ export class TasksClient {
 
     addList(title) {
         return this._api('POST', '/users/@me/lists', {title});
+    }
+
+    // ymd = 'YYYY-MM-DD' or null to remove the date. Google Tasks stores dates only (no time).
+    setDue(listId, taskId, ymd) {
+        return this._api('PATCH', `/lists/${enc(listId)}/tasks/${enc(taskId)}`,
+            {due: ymd ? `${ymd}T00:00:00.000Z` : null});
     }
 }
 
@@ -129,6 +136,54 @@ function order(tasks) {
         if (!seen.has(t.id))
             out.push({...t, depth: 0});
     return out;
+}
+
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+// 'today' | 'tomorrow' | 'fri' | '28' | 'dec 5' | '5 dec' | '2026-12-05' -> 'YYYY-MM-DD' or null
+export function parseDate(text) {
+    const s = text.trim().toLowerCase();
+    const now = GLib.DateTime.new_now_local();
+    const ymd = d => d.format('%F');
+    const valid = (y, m, d) => (m >= 1 && m <= 12 && d >= 1 && d <= GLib.Date.get_days_in_month(m, y));
+    const mk = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    let m;
+    if (['today', 'tod'].includes(s))
+        return ymd(now);
+    if (['tomorrow', 'tmr', 'tom'].includes(s))
+        return ymd(now.add_days(1));
+    const wd = DAYS.findIndex(d => s.length >= 3 && d.startsWith(s));
+    if (wd >= 0)
+        return ymd(now.add_days(((wd + 1 - now.get_day_of_week() + 7) % 7) || 7)); // next such day
+    if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)))
+        return valid(+m[1], +m[2], +m[3]) ? mk(+m[1], +m[2], +m[3]) : null;
+    let mon = null, day = null;
+    if ((m = s.match(/^(\d{1,2})$/))) {
+        day = +m[1];
+    } else if ((m = s.match(/^([a-z]{3})[a-z]*\.?\s+(\d{1,2})$/)) || (m = s.match(/^(\d{1,2})\s+([a-z]{3})[a-z]*$/))) {
+        const [a, b] = /^\d/.test(m[1]) ? [m[2], m[1]] : [m[1], m[2]];
+        mon = MONTHS.indexOf(a) + 1;
+        day = +b;
+        if (!mon)
+            return null;
+    } else {
+        return null;
+    }
+    // Pick the next upcoming matching date (this month/year, else the following one).
+    let y = now.get_year(), mo = mon ?? now.get_month();
+    const today = ymd(now);
+    for (let i = 0; i < 13; i++) {
+        if (valid(y, mo, day) && mk(y, mo, day) >= today)
+            return mk(y, mo, day);
+        if (mon) {
+            y++;
+        } else if (++mo > 12) {
+            mo = 1;
+            y++;
+        }
+    }
+    return null;
 }
 
 // -> {text: 'Nov 25' | 'today', overdue: bool} or null
