@@ -1,0 +1,14 @@
+.gtasks-card {
+  width: 300px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background-color: rgba(20, 20, 20, 0.55);
+  color: #f2f2f2;
+  font-size: 10.5pt;
+  spacing: 3px;
+}
+.gtasks-list { font-weight: bold; color: #9cc3ff; margin-top: 6px; }
+.gtasks-due { color: #bbbbbb; font-size: 9pt; }
+.gtasks-overdue { color: #ff8a80; }
+.gtasks-dim { color: #bbbbbb; }
+.gtasks-header { font-weight: bold; color: #9cc3ff; }

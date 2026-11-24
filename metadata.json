@@ -1,0 +1,7 @@
+{
+  "uuid": "gtasks@shafayetsadik.github.io",
+  "name": "Google Tasks",
+  "description": "Minimal Google Tasks widget: desktop card + top-bar menu. Uses the Google account from Settings → Online Accounts.",
+  "shell-version": ["50"],
+  "url": "https://github.com/ShafayetSadik/gnome-gtasks-widget"
+}
